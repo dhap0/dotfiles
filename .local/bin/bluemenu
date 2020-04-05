@@ -1,0 +1,26 @@
+#! /bin/bash
+
+chooseDevices() {
+    NOMS="$(bluetoothctl devices | tr " " "_" | cut -d"_" -f3-) >Scan<"
+    CHOSEN=$(echo $NOMS |  tr " " "\n" | dmenu -p "Connect to..." -l 5)
+    [[ "$CHOSEN" == ">Scan<" ]]  && bluetoothctl --timeout 7 scan on &>/dev/null && exit
+    MAC=$(bluetoothctl devices | grep "`echo $CHOSEN | tr '_' ' '`" | cut -d" " -f2)
+    bluetoothctl connect  $MAC &>/dev/null 
+    exit;
+}
+
+
+
+OUT=$(bluetoothctl info)
+
+if [[ "$1" == "click" ]]; then
+
+    [[ "$OUT" == "Missing device address argument" ]] && chooseDevices || bluetoothctl --timeout 5 disconnect &>/dev/null;
+
+else    
+
+    [[ "$OUT" == "Missing device address argument" ]] && echo Disconected &&  exit;
+    #echo connected
+    echo "Connected: `bluetoothctl info | grep -Po "Name: \K.*"`"
+fi
+
